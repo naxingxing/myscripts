@@ -1,0 +1,214 @@
+playframework:
+
+
+Ubuntu and other Debian-based distributions:
+echo "deb http://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+sudo apt-get update
+sudo apt-get install sbt
+
+apt-get install -y git build-essential curl
+unzip typesafe-activator-1.3.2.zip
+mv activator-1.3.2 /opt/activator
+echo "export PATH=$PATH:/opt/activator" >> ~/.bashrc
+
+creating projects
+activator new <app-project-name> play-scala
+
+starting the dev console
+activator ui
+
+creating a standalone package
+https://www.playframework.com/documentation/2.3.x/ProductionDist
+activator dist
+
+
+
+
+--------------------
+
+# here is the sample code for stress test that can be use in user data
+
+sleep 90 
+stress --cpu 2k --io 400 --vm 2 --hdd 4 -t 600 
+sleep 300 
+stress --cpu 2k --io 600 --vm 2 --hdd 4 -t 800 
+sleep 600 
+stress --cpu 2k --io 800 --vm 2 --hdd 4 -t 1200
+
+--------------------
+
+ubuntu:
+
+https://www.digitalocean.com/community/tutorials/how-to-install-java-on-ubuntu-with-apt-get
+https://help.ubuntu.com/community/Java
+
+sudo apt-get install python-software-properties
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+
+sudo apt-get install openjdk-7-jre
+sudo apt-get install openjdk-7-jdk
+
+# On ubuntu, Oracle Java cannot be installed without being asked to agree to the oracle useage license etc. and the apt-get -y will not help in this case. So just pre-install java and make an AMI for ec2.
+
+# sudo apt-get install oracle-java6-installer
+sudo apt-get install oracle-java7-installer
+
+sudo apt-get install libapache2-mod-proxy-html libxml2-dev
+
+sudo apt-get install apache2
+
+sudo apt-get install libapache2-mod-proxy-html libxml2-dev
+
+sudo a2enmod proxy proxy_html proxy_http proxy_ajp
+sudo a2enmod rewrite deflate headers proxy_balancer
+sudo a2enmod headers proxy_balancer proxy_connect
+
+
+
+# install the AWS CLI
+sudo curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+sudo python get-pip.py
+sudo pip install awscli
+sudo pip install --upgrade awscli
+
+
+user data:
+
+#!/bin/bash 
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+nohup /home/ubuntu/download/businessportal-1.0-SNAPSHOT/bin/businessportal &
+
+
+
+OpsWorks needs:
+
+Install Vagrant - http://sourabhbajaj.com/mac-setup/Vagrant/README.html
+brew cask install virtualbox
+brew cask install vagrant
+brew cask install vagrant-manager
+
+
+http://misheska.com/#kitchen-ec2-kitchenyml-example
+Before running any Test Kitchen commands, make sure you set the appropriate environment variables as shown below (with your own values):
+
+export AWS_ACCESS_KEY_ID="AKIAIQ347NXVMLWL5X6A"
+export AWS_SECRET_ACCESS_KEY="XadxzUY7kkIvkacTqQdWq5crDfWBs/Dr3He7ZTe1"
+export AWS_SSH_KEY_ID="sg-keypair-test-1"
+export AWS_SSH_KEY="/Users/rexna/Documents/devworkspace/aws/keypairs/$AWS_SSH_KEY_ID.pem"
+
+
+
+========= kill process command ==========
+kill [signal] PID
+kill -15 PID
+kill -9 PID
+kill -SIGTERM PID
+kill [options] -SIGTERM PID
+========= kill process command ==========
+-----------------------------------------------------------------------------------------------------------
+
+# ==== deployment script of hxcb site ==== >> Ubuntu ver.
+# 1. install apache server and related mods
+
+sudo apt-get install python-software-properties
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+
+sudo apt-get install oracle-java7-installer
+
+# as below, sudo is necessary
+
+sudo apt-get install apache2
+
+sudo apt-get install libapache2-mod-proxy-html libxml2-dev
+
+sudo a2enmod proxy proxy_html proxy_http proxy_ajp
+sudo a2enmod rewrite deflate headers proxy_balancer
+sudo a2enmod headers proxy_balancer proxy_connect
+
+# install the compression tools on ubuntu
+sudo apt-get install zip
+
+# 2. login to the server
+sudo ssh -i ~/Documents/devworkspace/aws/keypairs/hxcb-sg-kp-1.pem ubuntu@52.74.84.58
+
+# 3. scp the zipped app package to the server
+# make a directory on the server - download
+sudo scp -i ~/Documents/devworkspace/aws/keypairs/hxcb-sg-kp-1.pem ~/git/hxcbsite/target/universal/hxcbsite-1.0-SNAPSHOT.zip ubuntu@52.74.84.58:download
+
+# 4. edit the apache2 config file like below
+sudo vim /etc/apache2/sites-enabled/000-default.conf
+
+<VirtualHost *:80>
+
+  ProxyPreserveHost On
+  ServerName huanyayunqi.com
+  ServerAlias www.huanyayunqi.com
+  # ProxyPass  /excluded !
+  ProxyPass / http://localhost:9000/
+  ProxyPassReverse / http://localhost:9000/
+
+
+</VirtualHost>
+
+
+<VirtualHost *:80>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html/test
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+
+
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with "a2disconf".
+        #Include conf-available/serve-cgi-bin.conf
+
+#  ProxyPreserveHost On
+#  ServerName www.huanyayunqi.com
+#  ProxyPass  /excluded !
+#  ProxyPass / http://127.0.0.1:9000/
+#  ProxyPassReverse / http://127.0.0.1:9000/
+
+
+</VirtualHost>
+
+
+
+# 5. cd into the directory, then run it like below
+bin/businessportal
+
+
+
+
+------------------------------------------------------------------------------------------------------------------
+ubuntu user data:
+#!/bin/bash
+echo "deb http://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+sudo apt-get update
+sudo apt-get install sbt
+apt-get install -y git build-essential zip
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+sudo python get-pip.py
+sudo pip install awscli
+sudo pip install --upgrade awscli

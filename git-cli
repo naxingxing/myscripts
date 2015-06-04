@@ -1,0 +1,56 @@
+# good ref: http://rogerdudler.github.io/git-guide/
+
+# Adding a new local repo and connect to the remote one.
+# Before anything, create your new repository with desired name, without a README file, in github!! 
+
+git init
+
+git add .
+
+git commit -m "Initial commit"
+
+git remote add origin https://github.com/naxingxing/<reponame>.git
+
+git push origin master
+
+-------------------------------------------------------------------------------------
+To have your terminal prompt display what branch you are currently on in green, add the following to your ~/.bash_profile (I have my current directory displayed in cyan):
+
+function git-branch-name {
+  git symbolic-ref HEAD 2>/dev/null | cut -d"/" -f 3
+}
+function git-branch-prompt {
+  local branch=`git-branch-name`
+  if [ $branch ]; then printf " [%s]" $branch; fi
+}
+PS1="\u@\h \[\033[0;36m\]\W\[\033[0m\]\[\033[0;32m\]\$(git-branch-prompt)\[\033[0m\] \$ "
+-----------------------------------------------------------------------------------
+
+# Remove directory from git and local
+git rm -r one-of-the-directories
+git commit -m "Remove duplicated directory"
+git push origin master
+
+# Remove directory from git but NOT local
+# As mentioned in the comments, what you usually want to do is remove this directory from git but not delete it entirely from the filesystem (local)
+# In that case use:
+
+git rm -r --cached myFolder
+
+## Delete only the local folder
+rm -rf yourfolderpath
+
+--------------------------------------------------------------------------------------------------------
+#To view hidden folders in Finder (Mac OS X) execute these two commands in your terminal window:
+
+defaults write com.apple.finder AppleShowAllFiles TRUE
+killall Finder
+--------------------------------------------------------------------------------------------------------
+
+git remote -v
+# View current remotes
+
+git remote rm destination
+# Remove remote
+git remote -v
+# Verify it's gone
