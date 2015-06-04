@@ -1,0 +1,209 @@
+# this script is all about using aws cli 
+
+# references:
+
+# AWS cli manual
+# http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html
+
+aws cli configure
+# http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
+
+
+# -------------------------Configure the aws cli--------ST----------------------------------------------
+
+# ** there are 2 ways of configuring the profile. 
+
+# 1. use shell to make up the environment variables
+export AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxx
+export AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export AWS_DEFAULT_REGION=ap-southeast-1
+
+# -- or -- use set existing profile: 
+export AWS_DEFAULT_PROFILE=s3access
+
+
+# 2. put all in ~/.aws/config and ~/.aws/credentials, then use below command
+aws s3 ls s3://xxxxxxxxxxbucketname --profile s3access
+
+# --------------------------Configure the aws cli--------ED--------------------------------------------------
+
+# --------------------------S3 cli usage--------ED-----------------------------------------------
+# s3:
+# 1. Creates an S3 bucket.
+aws s3 mb s3://mybucket
+
+# 2. get bucket objects
+aws s3 ls s3://xxxxxxxxxxbucketname --profile s3access
+
+# 3. removew a bucket
+aws s3 rb s3://mybucket
+
+# 4. delete objects, the recursive param can help delete all objects
+aws s3 rm s3://mybucket --recursive
+
+# ** below will delete the folder and the file in one run
+aws s3 rm s3://xxxxxxxxxxbucketname/yourfolder/ --recursive --profile s3access
+
+# 5. set object acl
+aws s3api put-object-acl --bucket xxxxxxxxxxbucketname --key opsworks/cookbooks/playcookbooks.zip --grant-full-control 'emailaddress="xxxxxxxxxxxx@gmail.com"' --grant-read 'uri="http://acs.amazonaws.com/groups/global/AllUsers"' --profile s3access
+
+# 6. upload files to a bucket(folders can be created like below)
+# http://docs.aws.amazon.com/cli/latest/reference/s3/cp.html
+aws s3 cp ~/Desktop/playtest-cookbooks.zip s3://xxxxxxxxxxbucketname/newfolder/ --profile s3access
+
+# --------------------------S3 cli usage--------ED---------------------------------
+
+
+
+
+
+# ---------------------------Opsworks cli usage------ST--------------------------
+
+# All commands regarding the Opsworks cli can be found via below:
+# http://docs.aws.amazon.com/cli/latest/reference/opsworks/index.html#cli-aws-opsworks
+
+
+# 1. create a stack (below is a list of params to use)
+# http://docs.aws.amazon.com/cli/latest/reference/opsworks/create-stack.html
+
+# %%% NOTE: OpsWorks CLI commands should set the region to """us-east-1""", regardless of the stack's location.
+# %%% --region us-east-1
+
+# $$$ below is just an intro, not runnable. To run it, restructure it.
+
+aws opsworks create-stack --region us-east-1
+--name "CLI Stack" 
+--stack-region "ap-southeast-1" 
+--vpc-id vpc-d5874fb0 
+--default-availability-zone ap-southeast-1a 
+--default-subnet-id subnet-b108c0c6
+--service-role-arn arn:aws:iam::124123412342134:role/aws-opsworks-service-role 
+--default-instance-profile-arn arn:aws:iam::1234213421342134:instance-profile/aws-opsworks-ec2-role 
+--use-custom-cookbooks
+--custom-cookbooks-source Type=s3,Url=https://s3.amazonaws.com/asdfsafewgewg/opsworks/cookbooks/playcookbooks.zip
+--hostname-theme Fruits
+--use-opsworks-security-groups
+--default-ssh-key-name sxxxxxxxxxxxxxxx
+
+# ************************** params to use later **************************************************
+
+--default-root-device-type (string)
+
+--cli-input-json (string) Performs service operation based on the JSON string provided. The JSON string follows the format provided by --generate-cli-skeleton. If other arguments are provided on the command line, the CLI values will override the JSON-provided values.
+
+--generate-cli-skeleton (boolean) Prints a sample input JSON to standard output. Note the specified operation is not run if this argument is specified. The sample input can be used as an argument for --cli-input-json.
+
+# ****************************************************************************
+
+# Runnable cmd:
+aws opsworks create-stack --name "CLI Stack" --stack-region "ap-southeast-1" --vpc-id vpc-xxxxxxxxx --default-availability-zone ap-southeast-1a --default-subnet-id subnet-xxxxxxxxxx --service-role-arn arn:aws:iam::1234123412432143214:role/aws-opsworks-service-role --default-instance-profile-arn arn:aws:iam::12341234214321432142134:instance-profile/aws-opsworks-ec2-role --use-custom-cookbooks --custom-cookbooks-source Type=archive,Url=https://s3-ap-southeast-1.amazonaws.com/asdfwqfwerqreqr/opsworks/cookbooks/playcookbooks.zip --hostname-theme Fruits --use-opsworks-security-groups --default-ssh-key-name wergqgrwr3qt43qt43t4 --profile admin --region us-east-1
+
+# update a stack:
+aws opsworks update-stack --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --custom-cookbooks-source Type=archive,Url=https://s3-ap-southeast-1.amazonaws.com/qweqwegrqgreqgreqg/opsworks/cookbooks/playcookbooks.zip
+
+
+
+
+
+
+# 2. create a layer
+
+aws opsworks create-layer 
+--stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx 
+--type custom 
+--name play-web 
+--shortname websrv 
+--auto-assign-public-ips 
+
+# Runnable cmd:
+aws opsworks create-layer --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --type custom --name play-web --shortname websrv --auto-assign-public-ips --custom-recipes "{\"Setup\":[\"playwebserver::setup\"]}" --profile admin --region us-east-1
+
+
+# 2.1. update a layer 
+aws opsworks update-layer 
+--layer-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+
+# some optional params to use like below
+--custom-recipes "{\"Setup\":[\"playwebserver::setup\"], \"Configure\":[\"playwebserver::config\"], \"Deploy\":[\"playwebserver::deploy\"]}" 
+
+# Runnable cmd:
+aws opsworks update-layer --layer-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --custom-recipes "{\"Setup\":[\"playwebserver::setup\"], \"Configure\":[\"playwebserver::setconfig\"], \"Deploy\":[\"playwebserver::deploy\"]}" --profile admin --region us-east-1
+aws opsworks update-layer --layer-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --custom-instance-profile-arn arn:aws:iam::123412342134213421:instance-profile/aws-opsworks-ec2-role
+
+
+
+#3. create an instance
+
+#$$ use --os "Custom" --ami-id to control the ami to use
+#$$ remember to check --generate-cli-skeleton
+
+aws opsworks create-instance 
+--stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+--layer-ids xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+--instance-type t2.micro 
+--root-device-type ebs 
+--ssh-key-name xxxxxxxxxxxxxxxxxsxxxxxx 
+--os "Ubuntu 12.04 LTS" 
+--availability-zone ap-southeast-1a 
+--subnet-id subnet-xxxxxxxx
+
+
+#Runnable cmd:
+
+aws opsworks create-instance --stack-id dxxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --layer-ids xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx6ff --instance-type t2.micro --root-device-type ebs --ssh-key-name xxxxxxxxxxxx --os "Ubuntu 12.04 LTS" --availability-zone ap-southeast-1a --subnet-id subnet-xxxxxxx --profile admin --region us-east-1
+
+aws opsworks create-instance --stack-id dxxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --layer-ids xxxxxxxxx-07c4-44f1-9142-xxxxxxxxxf --instance-type t2.micro --root-device-type ebs --ssh-key-name xxxxxxxxxxxxxx  --availability-zone ap-southeast-1a --subnet-id subnet-xxxxxx --os "Custom" --ami-id ami-849fa6d6 --profile admin --region us-east-1
+
+
+
+#4. start stacks' instances 
+
+# NOTE: sometimes starting an instance may get stuck there for a long time. It just display "booting" forever. Better reboot it.
+
+aws opsworks start-stack
+--stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+
+aws opsworks start-stack --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --profile admin --region us-east-1
+
+# --or--
+
+# >> start one specific instance, instead of using the actual instance id, the param instance-id should be opsworks id for the instance
+aws opsworks start-instance --instance-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+aws opsworks reboot-instance --instance-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+
+
+
+# 4. update a stack
+
+aws opsworks update-stack --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --name "CLI Stack" --default-availability-zone ap-southeast-1a --default-subnet-id subnet-xxxxxxxxxx --service-role-arn arn:aws:iam::12342134213421342143:role/aws-opsworks-service-role --default-instance-profile-arn arn:aws:iam::1234123421432143214:instance-profile/aws-opsworks-ec2-role --use-custom-cookbooks --custom-cookbooks-source Type=archive,Url=https://s3-ap-southeast-1.amazonaws.com/xxxxxxxxxxxxxxxxxx/opsworks/cookbooks/playcookbook.zip --hostname-theme Fruits --use-opsworks-security-groups --default-ssh-key-name xxxxxxxxxxxxxxxxxxxxxxx--profile admin --region us-east-1
+aws opsworks update-stack --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --custom-cookbooks-source Type=git,Url=https://github.com/naxingxing/myowcookbooks.git --profile admin --region us-east-1
+
+# 5. create an app
+aws opsworks create-app 
+--stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx
+--name "asdfasdf" 
+--type other 
+--app-source Type=git,Url=https://github.com/xxxxxxxxxxx/asdfsadf.git
+
+# Runnable cmd
+aws --debug opsworks create-app --stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx --name "asdfasdf" --type other --app-source Type=git,Url=https://github.com/xxxxxxxxxxxx/asdfasdf.git --profile admin --region us-east-1
+
+
+# 6. create a deployment
+aws opsworks create-deployment 
+--stack-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx 
+--app-id xxxxxxxxx-07c4-44f1-9142-xxxxxxxxx 
+--command "{\"Name\":\"deploy\"}" 
+
+
+
+
+
+############# IMPORTANCE ###############
+# Below link shows opsworks attributes and how they are structured
+# http://docs.aws.amazon.com/opsworks/latest/userguide/attributes-json-opsworks.html
+# http://docs.aws.amazon.com/opsworks/latest/userguide/attributes-json-deploy.html#attributes-json-deploy-app-app
+
+# ---------------------------Opsworks cli usage------ED--------------------------
+
+
